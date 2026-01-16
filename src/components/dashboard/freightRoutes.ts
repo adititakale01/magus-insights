@@ -1,123 +1,140 @@
-// Realistic global freight route dataset
-// Coordinates are approximate percentages on a world map projection
-
-export interface Port {
+// Real-world coordinates using accurate lat/lng positions
+export interface City {
   name: string;
-  x: number; // percentage position on map
-  y: number;
-  region: "asia" | "europe" | "americas" | "oceania";
+  country: string;
+  x: number; // percentage position on map (0-100)
+  y: number; // percentage position on map (0-100)
+}
+
+export interface Transaction {
+  id: string;
+  date: string;
+  commodity: string;
+  weight: string;
+  value: string;
+  status: string;
+  vessel?: string;
 }
 
 export interface FreightRoute {
   id: string;
-  origin: Port;
-  destination: Port;
-  volume: number; // 1-10 scale for visual weight
-  status: "active" | "pending" | "completed";
-  shipments: number;
+  origin: City;
+  destination: City;
+  transactions: Transaction[];
 }
 
-export const ports: Record<string, Port> = {
-  // Asia Pacific
-  shanghai: { name: "Shanghai", x: 78, y: 42, region: "asia" },
-  ningbo: { name: "Ningbo", x: 79, y: 44, region: "asia" },
-  shenzhen: { name: "Shenzhen", x: 75, y: 48, region: "asia" },
-  hongKong: { name: "Hong Kong", x: 74, y: 48, region: "asia" },
-  hoChiMinh: { name: "Ho Chi Minh City", x: 71, y: 54, region: "asia" },
-  singapore: { name: "Singapore", x: 69, y: 60, region: "asia" },
-  busan: { name: "Busan", x: 81, y: 38, region: "asia" },
-  qingdao: { name: "Qingdao", x: 79, y: 38, region: "asia" },
-  tokyo: { name: "Tokyo", x: 85, y: 38, region: "asia" },
-  yokohama: { name: "Yokohama", x: 85, y: 39, region: "asia" },
-  kaohsiung: { name: "Kaohsiung", x: 78, y: 48, region: "asia" },
-  
-  // Europe
-  rotterdam: { name: "Rotterdam", x: 36, y: 30, region: "europe" },
-  hamburg: { name: "Hamburg", x: 38, y: 28, region: "europe" },
-  antwerp: { name: "Antwerp", x: 35, y: 30, region: "europe" },
-  felixstowe: { name: "Felixstowe", x: 33, y: 28, region: "europe" },
-  gdansk: { name: "Gdansk", x: 41, y: 27, region: "europe" },
-  piraeus: { name: "Piraeus", x: 44, y: 40, region: "europe" },
-  barcelona: { name: "Barcelona", x: 33, y: 38, region: "europe" },
-  valencia: { name: "Valencia", x: 32, y: 40, region: "europe" },
-  leHavre: { name: "Le Havre", x: 32, y: 32, region: "europe" },
-  
-  // Americas
-  losAngeles: { name: "Los Angeles", x: 14, y: 42, region: "americas" },
-  longBeach: { name: "Long Beach", x: 14, y: 43, region: "americas" },
-  newYork: { name: "New York", x: 24, y: 38, region: "americas" },
-  savannah: { name: "Savannah", x: 22, y: 44, region: "americas" },
-  houston: { name: "Houston", x: 18, y: 46, region: "americas" },
-  manzanillo: { name: "Manzanillo", x: 15, y: 52, region: "americas" },
-  santos: { name: "Santos", x: 28, y: 72, region: "americas" },
-  colon: { name: "Colon", x: 21, y: 56, region: "americas" },
-  vancouver: { name: "Vancouver", x: 13, y: 32, region: "americas" },
-  
-  // Oceania
-  melbourne: { name: "Melbourne", x: 88, y: 78, region: "oceania" },
-  sydney: { name: "Sydney", x: 90, y: 76, region: "oceania" },
-  auckland: { name: "Auckland", x: 96, y: 78, region: "oceania" },
+// Convert lat/lng to x/y percentage (equirectangular projection)
+const toMapCoords = (lat: number, lng: number): { x: number; y: number } => {
+  const x = ((lng + 180) / 360) * 100;
+  const y = ((90 - lat) / 180) * 100;
+  return { x, y };
 };
 
-// Generate realistic freight routes with varying volumes
+// Major global ports with accurate coordinates
+const cities: Record<string, City> = {
+  // Asia
+  shanghai: { name: "Shanghai", country: "China", ...toMapCoords(31.2304, 121.4737) },
+  ningbo: { name: "Ningbo", country: "China", ...toMapCoords(29.8683, 121.5440) },
+  shenzhen: { name: "Shenzhen", country: "China", ...toMapCoords(22.5431, 114.0579) },
+  qingdao: { name: "Qingdao", country: "China", ...toMapCoords(36.0671, 120.3826) },
+  hongKong: { name: "Hong Kong", country: "China", ...toMapCoords(22.3193, 114.1694) },
+  busan: { name: "Busan", country: "South Korea", ...toMapCoords(35.1796, 129.0756) },
+  singapore: { name: "Singapore", country: "Singapore", ...toMapCoords(1.3521, 103.8198) },
+  hoChiMinh: { name: "Ho Chi Minh City", country: "Vietnam", ...toMapCoords(10.8231, 106.6297) },
+  tokyo: { name: "Tokyo", country: "Japan", ...toMapCoords(35.6762, 139.6503) },
+  yokohama: { name: "Yokohama", country: "Japan", ...toMapCoords(35.4437, 139.6380) },
+  
+  // Europe
+  rotterdam: { name: "Rotterdam", country: "Netherlands", ...toMapCoords(51.9244, 4.4777) },
+  hamburg: { name: "Hamburg", country: "Germany", ...toMapCoords(53.5511, 9.9937) },
+  antwerp: { name: "Antwerp", country: "Belgium", ...toMapCoords(51.2194, 4.4025) },
+  felixstowe: { name: "Felixstowe", country: "UK", ...toMapCoords(51.9615, 1.3509) },
+  gdansk: { name: "Gdansk", country: "Poland", ...toMapCoords(54.3520, 18.6466) },
+  piraeus: { name: "Piraeus", country: "Greece", ...toMapCoords(37.9475, 23.6413) },
+  barcelona: { name: "Barcelona", country: "Spain", ...toMapCoords(41.3851, 2.1734) },
+  
+  // Americas
+  losAngeles: { name: "Los Angeles", country: "USA", ...toMapCoords(33.7490, -118.2417) },
+  longBeach: { name: "Long Beach", country: "USA", ...toMapCoords(33.7701, -118.1937) },
+  newYork: { name: "New York", country: "USA", ...toMapCoords(40.7128, -74.0060) },
+  savannah: { name: "Savannah", country: "USA", ...toMapCoords(32.0809, -81.0912) },
+  manzanillo: { name: "Manzanillo", country: "Mexico", ...toMapCoords(19.0544, -104.3152) },
+  santos: { name: "Santos", country: "Brazil", ...toMapCoords(-23.9608, -46.3336) },
+  vancouver: { name: "Vancouver", country: "Canada", ...toMapCoords(49.2827, -123.1207) },
+  
+  // Oceania & Middle East
+  melbourne: { name: "Melbourne", country: "Australia", ...toMapCoords(-37.8136, 144.9631) },
+  sydney: { name: "Sydney", country: "Australia", ...toMapCoords(-33.8688, 151.2093) },
+  dubai: { name: "Dubai", country: "UAE", ...toMapCoords(25.2048, 55.2708) },
+};
+
+// Generate realistic transaction data
+const generateTransactions = (count: number): Transaction[] => {
+  const commodities = ["Electronics", "Machinery", "Auto Parts", "Textiles", "Chemicals", "Furniture", "Consumer Goods", "Medical Equipment"];
+  const statuses = ["Delivered", "In Transit", "Cleared", "Pending"];
+  const vessels = ["MSC Oscar", "Ever Given", "CSCL Globe", "Madrid Maersk", "HMM Algeciras", "Cosco Shipping Universe"];
+  
+  return Array.from({ length: count }, (_, i) => ({
+    id: `TXN-${1000 + i}`,
+    date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    commodity: commodities[Math.floor(Math.random() * commodities.length)],
+    weight: `${(Math.random() * 500 + 50).toFixed(1)} TEU`,
+    value: `$${(Math.random() * 2000000 + 100000).toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    vessel: vessels[Math.floor(Math.random() * vessels.length)],
+  }));
+};
+
+// Define realistic freight routes
 export const freightRoutes: FreightRoute[] = [
-  // Major Asia to Europe routes (high volume)
-  { id: "rt001", origin: ports.shanghai, destination: ports.rotterdam, volume: 10, status: "active", shipments: 847 },
-  { id: "rt002", origin: ports.ningbo, destination: ports.hamburg, volume: 9, status: "active", shipments: 623 },
-  { id: "rt003", origin: ports.shenzhen, destination: ports.felixstowe, volume: 8, status: "active", shipments: 512 },
-  { id: "rt004", origin: ports.busan, destination: ports.rotterdam, volume: 8, status: "active", shipments: 489 },
-  { id: "rt005", origin: ports.qingdao, destination: ports.antwerp, volume: 7, status: "active", shipments: 378 },
-  { id: "rt006", origin: ports.hongKong, destination: ports.hamburg, volume: 7, status: "pending", shipments: 356 },
-  { id: "rt007", origin: ports.singapore, destination: ports.rotterdam, volume: 9, status: "active", shipments: 567 },
-  { id: "rt008", origin: ports.kaohsiung, destination: ports.gdansk, volume: 6, status: "active", shipments: 234 },
+  // Asia to Europe
+  { id: "r1", origin: cities.shanghai, destination: cities.rotterdam, transactions: generateTransactions(8) },
+  { id: "r2", origin: cities.ningbo, destination: cities.hamburg, transactions: generateTransactions(6) },
+  { id: "r3", origin: cities.shenzhen, destination: cities.felixstowe, transactions: generateTransactions(5) },
+  { id: "r4", origin: cities.busan, destination: cities.antwerp, transactions: generateTransactions(4) },
+  { id: "r5", origin: cities.qingdao, destination: cities.gdansk, transactions: generateTransactions(3) },
+  { id: "r6", origin: cities.hongKong, destination: cities.piraeus, transactions: generateTransactions(4) },
+  { id: "r7", origin: cities.singapore, destination: cities.barcelona, transactions: generateTransactions(3) },
   
-  // Asia to Americas routes
-  { id: "rt009", origin: ports.shanghai, destination: ports.losAngeles, volume: 10, status: "active", shipments: 892 },
-  { id: "rt010", origin: ports.ningbo, destination: ports.longBeach, volume: 9, status: "active", shipments: 678 },
-  { id: "rt011", origin: ports.shenzhen, destination: ports.newYork, volume: 8, status: "active", shipments: 445 },
-  { id: "rt012", origin: ports.busan, destination: ports.losAngeles, volume: 7, status: "pending", shipments: 334 },
-  { id: "rt013", origin: ports.hoChiMinh, destination: ports.longBeach, volume: 6, status: "active", shipments: 267 },
-  { id: "rt014", origin: ports.qingdao, destination: ports.savannah, volume: 5, status: "active", shipments: 189 },
-  { id: "rt015", origin: ports.tokyo, destination: ports.vancouver, volume: 6, status: "active", shipments: 223 },
+  // Asia to Americas
+  { id: "r8", origin: cities.shanghai, destination: cities.losAngeles, transactions: generateTransactions(7) },
+  { id: "r9", origin: cities.shenzhen, destination: cities.longBeach, transactions: generateTransactions(6) },
+  { id: "r10", origin: cities.busan, destination: cities.vancouver, transactions: generateTransactions(4) },
+  { id: "r11", origin: cities.ningbo, destination: cities.newYork, transactions: generateTransactions(5) },
+  { id: "r12", origin: cities.hoChiMinh, destination: cities.manzanillo, transactions: generateTransactions(3) },
+  { id: "r13", origin: cities.tokyo, destination: cities.savannah, transactions: generateTransactions(4) },
   
-  // Europe to Americas
-  { id: "rt016", origin: ports.rotterdam, destination: ports.newYork, volume: 7, status: "active", shipments: 345 },
-  { id: "rt017", origin: ports.hamburg, destination: ports.savannah, volume: 5, status: "active", shipments: 178 },
-  { id: "rt018", origin: ports.antwerp, destination: ports.houston, volume: 6, status: "pending", shipments: 212 },
-  { id: "rt019", origin: ports.felixstowe, destination: ports.newYork, volume: 5, status: "active", shipments: 167 },
+  // Asia to Oceania
+  { id: "r14", origin: cities.shanghai, destination: cities.melbourne, transactions: generateTransactions(3) },
+  { id: "r15", origin: cities.singapore, destination: cities.sydney, transactions: generateTransactions(4) },
   
-  // Intra-Asia routes
-  { id: "rt020", origin: ports.shanghai, destination: ports.singapore, volume: 8, status: "active", shipments: 445 },
-  { id: "rt021", origin: ports.busan, destination: ports.hongKong, volume: 6, status: "active", shipments: 278 },
-  { id: "rt022", origin: ports.shenzhen, destination: ports.tokyo, volume: 5, status: "active", shipments: 189 },
-  { id: "rt023", origin: ports.singapore, destination: ports.yokohama, volume: 5, status: "pending", shipments: 156 },
+  // Middle East connections
+  { id: "r16", origin: cities.dubai, destination: cities.rotterdam, transactions: generateTransactions(5) },
+  { id: "r17", origin: cities.singapore, destination: cities.dubai, transactions: generateTransactions(4) },
+  { id: "r18", origin: cities.dubai, destination: cities.newYork, transactions: generateTransactions(3) },
   
-  // Asia/Europe to Oceania
-  { id: "rt024", origin: ports.shanghai, destination: ports.melbourne, volume: 6, status: "active", shipments: 234 },
-  { id: "rt025", origin: ports.singapore, destination: ports.sydney, volume: 5, status: "active", shipments: 178 },
-  { id: "rt026", origin: ports.rotterdam, destination: ports.melbourne, volume: 4, status: "active", shipments: 123 },
-  { id: "rt027", origin: ports.busan, destination: ports.auckland, volume: 4, status: "pending", shipments: 98 },
+  // Intra-Asia
+  { id: "r19", origin: cities.shanghai, destination: cities.singapore, transactions: generateTransactions(5) },
+  { id: "r20", origin: cities.busan, destination: cities.yokohama, transactions: generateTransactions(4) },
   
-  // Americas to South America
-  { id: "rt028", origin: ports.houston, destination: ports.santos, volume: 5, status: "active", shipments: 167 },
-  { id: "rt029", origin: ports.newYork, destination: ports.colon, volume: 4, status: "active", shipments: 134 },
-  { id: "rt030", origin: ports.losAngeles, destination: ports.manzanillo, volume: 6, status: "active", shipments: 245 },
-  
-  // Mediterranean routes
-  { id: "rt031", origin: ports.piraeus, destination: ports.barcelona, volume: 4, status: "active", shipments: 112 },
-  { id: "rt032", origin: ports.valencia, destination: ports.piraeus, volume: 3, status: "pending", shipments: 89 },
-  { id: "rt033", origin: ports.leHavre, destination: ports.piraeus, volume: 4, status: "active", shipments: 98 },
-  
-  // Additional high-volume routes
-  { id: "rt034", origin: ports.hongKong, destination: ports.losAngeles, volume: 9, status: "active", shipments: 678 },
-  { id: "rt035", origin: ports.singapore, destination: ports.newYork, volume: 7, status: "active", shipments: 389 },
-  { id: "rt036", origin: ports.yokohama, destination: ports.longBeach, volume: 6, status: "active", shipments: 256 },
+  // South America
+  { id: "r21", origin: cities.shanghai, destination: cities.santos, transactions: generateTransactions(3) },
+  { id: "r22", origin: cities.rotterdam, destination: cities.santos, transactions: generateTransactions(2) },
 ];
 
-// Statistics for the visualization
+// Get all unique cities from routes
+export const getAllCities = (): City[] => {
+  const cityMap = new Map<string, City>();
+  freightRoutes.forEach(route => {
+    cityMap.set(route.origin.name, route.origin);
+    cityMap.set(route.destination.name, route.destination);
+  });
+  return Array.from(cityMap.values());
+};
+
+// Route statistics
 export const routeStats = {
-  totalActiveRoutes: freightRoutes.filter(r => r.status === "active").length,
-  totalShipments: freightRoutes.reduce((acc, r) => acc + r.shipments, 0),
-  topOrigins: ["Shanghai", "Ningbo", "Shenzhen", "Singapore", "Busan"],
-  topDestinations: ["Rotterdam", "Los Angeles", "Hamburg", "New York", "Long Beach"],
+  totalRoutes: freightRoutes.length,
+  totalTransactions: freightRoutes.reduce((acc, r) => acc + r.transactions.length, 0),
+  totalCities: getAllCities().length,
 };
