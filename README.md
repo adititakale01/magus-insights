@@ -1,5 +1,5 @@
 
-## How can I edit this code?
+## To edit this code:
 
 **Use your preferred IDE**
 
