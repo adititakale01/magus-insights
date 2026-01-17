@@ -1,9 +1,9 @@
-import { Bell, Settings, LayoutDashboard, Mail, Zap } from "lucide-react";
+import { Bell, Settings, LayoutDashboard, Mail, Zap, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TopNavProps {
-  activeTab: "dashboard" | "inbox";
-  onTabChange: (tab: "dashboard" | "inbox") => void;
+  activeTab: "dashboard" | "inbox" | "ask-magus";
+  onTabChange: (tab: "dashboard" | "inbox" | "ask-magus") => void;
 }
 
 export function TopNav({ activeTab, onTabChange }: TopNavProps) {
@@ -21,25 +21,33 @@ export function TopNav({ activeTab, onTabChange }: TopNavProps) {
       <nav className="flex items-center gap-1 p-1 rounded-xl bg-muted/30 backdrop-blur-sm">
         <button
           onClick={() => onTabChange("dashboard")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-            activeTab === "dashboard"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === "dashboard"
               ? "nav-tab-active text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
+            }`}
         >
           <LayoutDashboard className="w-4 h-4" />
           Dashboard
         </button>
         <button
           onClick={() => onTabChange("inbox")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-            activeTab === "inbox"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === "inbox"
               ? "nav-tab-active text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
+            }`}
         >
           <Mail className="w-4 h-4" />
           Inbox
+        </button>
+        <button
+          onClick={() => onTabChange("ask-magus")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === "ask-magus"
+              ? "nav-tab-active text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Ask Magus
         </button>
       </nav>
 

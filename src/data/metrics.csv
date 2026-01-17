@@ -1,0 +1,4 @@
+date,hour,mails_processed,avg_response_time,escalated_count
+2026-01-16,22,92,300,7
+2026-01-16,21,85,285,5
+2026-01-16,20,78,310,8

@@ -1,0 +1,47 @@
+id,sender,sender_name,subject,content,preview,status,timestamp,response_time,confidence_score,draft_response,data_sources
+1,sarah.miller@globallog.com,Sarah Miller,Quote Request: 1x40HC CNSHA → DEHAM,"Hi,
+
+Can you quote 1 x 40HC CNSHA → DEHAM, CY/CY?
+
+Best regards,
+Sarah Miller",Can you quote 1 x 40HC CNSHA → DEHAM CY/CY?,processed,2026-01-16T20:45:00Z,285,94.5,"Dear Mrs. Miller,
+
+Here is the quote you were asking for:
+
+1 x 40HC CNSHA → DEHAM, CY/CY
+Rate: $2,850
+Transit time: 28 days
+Valid until: 2026-01-23
+
+Please let me know if you need any additional information.
+
+Best regards,
+Magus AI","[{""name"": ""special-deals-sheet.xlsx"", ""type"": ""excel""}, {""name"": ""Maersk Spot: MSC"", ""type"": ""api""}]"
+2,john.doe@apexship.com,John Doe,Urgent: Container Availability NYC → HKG,"Hello,
+
+We need immediate availability for 2 x 20FT NYC → HKG. Can you check?
+
+Thanks,
+John",We need immediate availability for 2 x 20FT NYC → HKG,needs_review,2026-01-16T21:55:00Z,180,78.2,"Dear Mr. Doe,
+
+I found limited availability for your route. Please review the options:
+
+Option 1: Departure in 3 days - $1,850/container
+Option 2: Departure in 7 days - $1,650/container
+
+Which would you prefer?
+
+Best regards,
+Magus AI","[{""name"": ""carrier-availability.xlsx"", ""type"": ""excel""}]"
+3,emma.wilson@nexusfreight.com,Emma Wilson,Rate Request: HAM → SIN Bulk Cargo,"Hi team,
+
+Looking for rates on bulk cargo shipment HAM → SIN. 150 CBM. Urgency level high.
+
+Emma",Looking for rates on bulk cargo shipment HAM → SIN,escalated,2026-01-16T21:58:00Z,420,45.3,"[ESCALATED: Bulk cargo requires manual review]
+
+Dear Emma,
+
+Your request has been escalated to our specialist team due to the bulk cargo requirements. You will receive a detailed quote within 2 hours.
+
+Best regards,
+Magus AI","[{""name"": ""bulk-rates-db"", ""type"": ""database""}]"
