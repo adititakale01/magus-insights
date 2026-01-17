@@ -1,73 +1,79 @@
-# Welcome to your Lovable project
+# Magus Insights
 
-## Project info
+Magus Insights is a comprehensive dashboard designed to monitor agent performance, visualize client proposals, and provide an interactive chat interface ("Ask Magus") for system insights. This project is built locally and is part of the Magus Agent Olympics initiative.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Getting Started
 
-## How can I edit this code?
+Follow these steps to set up and run the project locally.
 
-There are several ways of editing your application.
+### Prerequisites
 
-**Use Lovable**
+- Node.js & npm (or bun/yarn/pnpm) installed on your machine.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Installation
 
-Changes made via Lovable will be committed automatically to this repo.
+1.  **Clone the repository:**
+    ```sh
+    git clone <repository-url>
+    cd magus-insights
+    ```
 
-**Use your preferred IDE**
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    # or
+    bun install
+    ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3.  **Start the development server:**
+    ```sh
+    npm run dev
+    # or
+    bun dev
+    ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4.  **Open in Browser:**
+    The application will typically start at `http://localhost:8080` (or the port shown in your terminal).
 
-Follow these steps:
+### Building for Production
 
+To create a production build:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The project follows a standard React/Vite structure:
 
-**Use GitHub Codespaces**
+```
+src/
+├── components/         # Reusable UI components
+│   ├── chat/           # Components for the "Ask Magus" chat interface
+│   ├── dashboard/      # Widgets and visualizations for the main dashboard (Globe, Metrics, Tables)
+│   └── ui/             # Shadcn UI primitive components
+├── data/               # Static data and type definitions
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and library configurations
+├── pages/              # Main page components (Routes)
+│   ├── Index.tsx       # The main Dashboard view
+│   ├── AskMagus.tsx    # The Chat interface view
+│   └── NotFound.tsx    # 404 Error page
+├── App.tsx             # Main application component with Routing setup
+└── main.tsx            # Entry point
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Key Features
 
-## What technologies are used for this project?
+-   **Dashboard:** specialized view for monitoring key metrics, visualizing global data with an interactive 3D globe, and managing client proposals.
+-   **Ask Magus:** An integrated chat interface to query system performance and agent details.
+-   **Modern UI:** Built with Tailwind CSS and Shadcn UI for a responsive and accessible design.
 
-This project is built with:
+## Technologies Used
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+-   [Vite](https://vitejs.dev/) - Frontend Tooling
+-   [React](https://reactjs.org/) - UI Library
+-   [TypeScript](https://www.typescriptlang.org/) - Static Type Checking
+-   [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
+-   [Shadcn UI](https://ui.shadcn.com/) - Reusable Component Library
+-   [React Globe GL](https://github.com/vasturiano/react-globe.gl) - 3D Globe Visualization
