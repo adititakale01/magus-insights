@@ -2,8 +2,10 @@
 export interface City {
   name: string;
   country: string;
-  x: number; // percentage position on map (0-100)
-  y: number; // percentage position on map (0-100)
+  lat: number;
+  lng: number;
+  x?: number; // percentage position on map (0-100) - kept for backward compatibility if needed
+  y?: number; // percentage position on map (0-100) - kept for backward compatibility if needed
 }
 
 export interface Proposal {
@@ -24,48 +26,60 @@ export interface FreightRoute {
 }
 
 // Convert lat/lng to x/y percentage (equirectangular projection)
+// Kept for 2D map compatibility if we ever need it back
 const toMapCoords = (lat: number, lng: number): { x: number; y: number } => {
   const x = ((lng + 180) / 360) * 100;
   const y = ((90 - lat) / 180) * 100;
   return { x, y };
 };
 
+// Helper to create city with both sets of coordinates
+const createCity = (name: string, country: string, lat: number, lng: number): City => {
+  return {
+    name,
+    country,
+    lat,
+    lng,
+    ...toMapCoords(lat, lng)
+  };
+};
+
 // Major global ports with accurate coordinates
-const cities: Record<string, City> = {
+export const cities: Record<string, City> = {
   // Asia
-  shanghai: { name: "Shanghai", country: "China", ...toMapCoords(31.2304, 121.4737) },
-  ningbo: { name: "Ningbo", country: "China", ...toMapCoords(29.8683, 121.5440) },
-  shenzhen: { name: "Shenzhen", country: "China", ...toMapCoords(22.5431, 114.0579) },
-  qingdao: { name: "Qingdao", country: "China", ...toMapCoords(36.0671, 120.3826) },
-  hongKong: { name: "Hong Kong", country: "China", ...toMapCoords(22.3193, 114.1694) },
-  busan: { name: "Busan", country: "South Korea", ...toMapCoords(35.1796, 129.0756) },
-  singapore: { name: "Singapore", country: "Singapore", ...toMapCoords(1.3521, 103.8198) },
-  hoChiMinh: { name: "Ho Chi Minh City", country: "Vietnam", ...toMapCoords(10.8231, 106.6297) },
-  tokyo: { name: "Tokyo", country: "Japan", ...toMapCoords(35.6762, 139.6503) },
-  yokohama: { name: "Yokohama", country: "Japan", ...toMapCoords(35.4437, 139.6380) },
+  shanghai: createCity("Shanghai", "China", 31.2304, 121.4737),
+  ningbo: createCity("Ningbo", "China", 29.8683, 121.5440),
+  shenzhen: createCity("Shenzhen", "China", 22.5431, 114.0579),
+  qingdao: createCity("Qingdao", "China", 36.0671, 120.3826),
+  hongKong: createCity("Hong Kong", "China", 22.3193, 114.1694),
+  busan: createCity("Busan", "South Korea", 35.1796, 129.0756),
+  singapore: createCity("Singapore", "Singapore", 1.3521, 103.8198),
+  hoChiMinh: createCity("Ho Chi Minh City", "Vietnam", 10.8231, 106.6297),
+  tokyo: createCity("Tokyo", "Japan", 35.6762, 139.6503),
+  yokohama: createCity("Yokohama", "Japan", 35.4437, 139.6380),
 
   // Europe
-  rotterdam: { name: "Rotterdam", country: "Netherlands", ...toMapCoords(51.9244, 4.4777) },
-  hamburg: { name: "Hamburg", country: "Germany", ...toMapCoords(53.5511, 9.9937) },
-  antwerp: { name: "Antwerp", country: "Belgium", ...toMapCoords(51.2194, 4.4025) },
-  felixstowe: { name: "Felixstowe", country: "UK", ...toMapCoords(51.9615, 1.3509) },
-  gdansk: { name: "Gdansk", country: "Poland", ...toMapCoords(54.3520, 18.6466) },
-  piraeus: { name: "Piraeus", country: "Greece", ...toMapCoords(37.9475, 23.6413) },
-  barcelona: { name: "Barcelona", country: "Spain", ...toMapCoords(41.3851, 2.1734) },
+  rotterdam: createCity("Rotterdam", "Netherlands", 51.9244, 4.4777),
+  hamburg: createCity("Hamburg", "Germany", 53.5511, 9.9937),
+  antwerp: createCity("Antwerp", "Belgium", 51.2194, 4.4025),
+  felixstowe: createCity("Felixstowe", "UK", 51.9615, 1.3509),
+  gdansk: createCity("Gdansk", "Poland", 54.3520, 18.6466),
+  piraeus: createCity("Piraeus", "Greece", 37.9475, 23.6413),
+  barcelona: createCity("Barcelona", "Spain", 41.3851, 2.1734),
 
   // Americas
-  losAngeles: { name: "Los Angeles", country: "USA", ...toMapCoords(33.7490, -118.2417) },
-  longBeach: { name: "Long Beach", country: "USA", ...toMapCoords(33.7701, -118.1937) },
-  newYork: { name: "New York", country: "USA", ...toMapCoords(40.7128, -74.0060) },
-  savannah: { name: "Savannah", country: "USA", ...toMapCoords(32.0809, -81.0912) },
-  manzanillo: { name: "Manzanillo", country: "Mexico", ...toMapCoords(19.0544, -104.3152) },
-  santos: { name: "Santos", country: "Brazil", ...toMapCoords(-23.9608, -46.3336) },
-  vancouver: { name: "Vancouver", country: "Canada", ...toMapCoords(49.2827, -123.1207) },
+  losAngeles: createCity("Los Angeles", "USA", 33.7490, -118.2417),
+  longBeach: createCity("Long Beach", "USA", 33.7701, -118.1937),
+  newYork: createCity("New York", "USA", 40.7128, -74.0060),
+  savannah: { name: "Savannah", country: "USA", ...toMapCoords(32.0809, -81.0912), lat: 32.0809, lng: -81.0912 }, // Manual fallback if createCity acts weird in some envs (just being safe, actually I'll use createCity for all for consistency)
+  manzanillo: createCity("Manzanillo", "Mexico", 19.0544, -104.3152),
+  santos: createCity("Santos", "Brazil", -23.9608, -46.3336),
+  vancouver: createCity("Vancouver", "Canada", 49.2827, -123.1207),
 
   // Oceania & Middle East
-  melbourne: { name: "Melbourne", country: "Australia", ...toMapCoords(-37.8136, 144.9631) },
-  sydney: { name: "Sydney", country: "Australia", ...toMapCoords(-33.8688, 151.2093) },
-  dubai: { name: "Dubai", country: "UAE", ...toMapCoords(25.2048, 55.2708) },
+  melbourne: createCity("Melbourne", "Australia", -37.8136, 144.9631),
+  sydney: createCity("Sydney", "Australia", -33.8688, 151.2093),
+  dubai: createCity("Dubai", "UAE", 25.2048, 55.2708),
 };
 
 // Generate realistic proposal data
