@@ -219,6 +219,180 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow-elevated);
   }
+
+  /* Custom Scrollbar Styles */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .scrollbar-thumb-white\/10::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .scrollbar-thumb-white\/10::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Email Body HTML Content Styling */
+  .email-body-content {
+    color: rgb(255, 255, 255) !important; /* white */
+    line-height: 1.6;
+  }
+
+  .email-body-content * {
+    max-width: 100%;
+    color: rgb(255, 255, 255) !important;
+    background-color: transparent !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .email-body-content p {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .email-body-content p:first-child {
+    margin-top: 0;
+  }
+
+  .email-body-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .email-body-content a {
+    color: rgb(255, 255, 255) !important;
+    text-decoration: underline !important;
+  }
+
+  .email-body-content a:hover {
+    color: rgb(255, 255, 255) !important;
+    opacity: 0.8;
+  }
+
+  .email-body-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0.75rem 0;
+  }
+
+  .email-body-content ul,
+  .email-body-content ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .email-body-content li {
+    margin: 0.25rem 0;
+  }
+
+  .email-body-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+  }
+
+  .email-body-content table td,
+  .email-body-content table th {
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .email-body-content table th {
+    background-color: transparent !important;
+    font-weight: 600;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content table td {
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content blockquote {
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    padding-left: 1rem;
+    margin: 0.75rem 0;
+    font-style: italic;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content code {
+    background-color: transparent !important;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content pre {
+    background-color: transparent !important;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .email-body-content h1,
+  .email-body-content h2,
+  .email-body-content h3,
+  .email-body-content h4,
+  .email-body-content h5,
+  .email-body-content h6 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  .email-body-content h1:first-child,
+  .email-body-content h2:first-child,
+  .email-body-content h3:first-child,
+  .email-body-content h4:first-child,
+  .email-body-content h5:first-child,
+  .email-body-content h6:first-child {
+    margin-top: 0;
+  }
+
+  .email-body-content hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1rem 0;
+  }
 }
 
 @layer utilities {

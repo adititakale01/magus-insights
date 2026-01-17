@@ -201,6 +201,7 @@ export function Inbox() {
       timestamp: timestamp,
       response_time: 0,
       confidence_score: 0,
+      confidence: record.confidence,
       draft_response: record.reply || '',
       data_sources: [],
       from: record.from,
@@ -280,130 +281,136 @@ export function Inbox() {
   });
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
+    <div className="h-[calc(100vh-6rem)] pt-6 px-6 flex flex-col">
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0">
+        <div className="mb-6 flex-shrink-0">
           <h2 className="text-3xl font-bold text-white mb-2">Inbox</h2>
           <p className="text-gray-400">AI-powered email automation</p>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-3">
-            <GlassCard className="p-4">
-              <div className="flex items-center gap-2 mb-4 text-gray-400">
-                <Filter className="w-4 h-4" />
-                <span className="text-sm font-medium">Filters</span>
-              </div>
-              <div className="space-y-2">
-                {(['all', 'processed', 'needs_review', 'escalated'] as FilterType[]).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${filter === f
-                      ? 'bg-white/20 text-white border border-cyan-400/50'
-                      : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                      }`}
-                  >
-                    <span className="text-sm capitalize">{f.replace('_', ' ')} {f === 'all' ? 'Emails' : ''}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${f === 'processed' ? 'bg-emerald-500/20 text-emerald-400' :
-                        f === 'needs_review' ? 'bg-yellow-500/20 text-yellow-400' :
-                          f === 'escalated' ? 'bg-red-500/20 text-red-400' :
-                            'bg-white/20'
-                      }`}>
-                      {getFilterCount(f)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </GlassCard>
-
-            <div className="mt-4 flex justify-end">
-              <button onClick={() => fetchInitialData()} title="Refresh" className="p-2 text-gray-400 hover:text-white transition-colors">
-                <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-
-          <div className="col-span-4">
-            <div className="space-y-3 relative min-h-[200px]">
-              {loading && emails.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+        <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
+          <div className="col-span-3 flex flex-col">
+            <div className="sticky top-6 self-start max-h-[calc(100vh-8rem)] flex flex-col">
+              <GlassCard className="p-4 flex-shrink-0">
+                <div className="flex items-center gap-2 mb-4 text-gray-400">
+                  <Filter className="w-4 h-4" />
+                  <span className="text-sm font-medium">Filters</span>
                 </div>
-              )}
-
-              {error && (
-                <GlassCard className="p-4 border-red-500/50 bg-red-500/10">
-                  <div className="text-red-400 text-sm mb-2">{error}</div>
-                  <button onClick={() => fetchInitialData()} className="text-xs bg-red-500/20 px-2 py-1 rounded text-red-300 hover:text-red-200">Retry</button>
-                </GlassCard>
-              )}
-
-              {displayEmails.map((email) => (
-                <GlassCard
-                  key={email.id}
-                  className={`p-4 cursor-pointer transition-all ${selectedEmail?.id === email.id
-                    ? 'border-cyan-400/50 bg-white/15'
-                    : ''
-                    }`}
-                  onClick={() => setSelectedEmail(email)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 overflow-hidden">
-                      <div className="font-semibold text-white mb-1 truncate">
-                        {email.sender_name}
-                      </div>
-                      <div className="text-sm text-gray-400 mb-2 truncate">
-                        {email.subject}
-                      </div>
-                    </div>
-                    <div className="ml-2 flex-shrink-0">
-                      {getStatusBadge(email.status)}
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-500 line-clamp-2 mb-2">
-                    {email.preview}
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{formatTime(email.timestamp)}</span>
-                    <span className="truncate max-w-[120px]">{email.from}</span>
-                  </div>
-                </GlassCard>
-              ))}
-
-              {!loading && displayEmails.length === 0 && !error && (
-                <div className="text-center text-gray-500 py-8">
-                  No emails found.
-                </div>
-              )}
-
-              {/* Load More Button */}
-              {/* Show if strict count check passes. For 'all', totalCount is from backend. For 'needs_review', same. */}
-              {/* Note: if we filter client side (processed/escalated), totalCount is for ALL emails, so this check is inaccurate. */}
-              {/* But for 'all' and 'needs_review' it should be fine. */}
-              {(filter === 'all' || filter === 'needs_review') && (offset + limit < totalCount) && (
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="w-full py-2 text-sm text-cyan-400 hover:text-cyan-300 hover:bg-white/5 rounded-lg transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Loading...' : 'Load More'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="col-span-5">
-            {selectedEmail ? (
-              <EmailDetail email={selectedEmail} />
-            ) : (
-              <GlassCard className="p-8 flex items-center justify-center h-full">
-                <div className="text-center text-gray-500">
-                  <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Select an email to view details</p>
+                <div className="space-y-2">
+                  {(['all', 'processed', 'needs_review', 'escalated'] as FilterType[]).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${filter === f
+                        ? 'bg-white/20 text-white border border-cyan-400/50'
+                        : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                        }`}
+                    >
+                      <span className="text-sm capitalize">{f.replace('_', ' ')} {f === 'all' ? 'Emails' : ''}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${f === 'processed' ? 'bg-emerald-500/20 text-emerald-400' :
+                          f === 'needs_review' ? 'bg-yellow-500/20 text-yellow-400' :
+                            f === 'escalated' ? 'bg-red-500/20 text-red-400' :
+                              'bg-white/20'
+                        }`}>
+                        {getFilterCount(f)}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </GlassCard>
-            )}
+
+              <div className="mt-4 flex justify-end flex-shrink-0">
+                <button onClick={() => fetchInitialData()} title="Refresh" className="p-2 text-gray-400 hover:text-white transition-colors">
+                  <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-4 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pr-2">
+              <div className="space-y-3 relative min-h-[200px]">
+                {loading && emails.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                  </div>
+                )}
+
+                {error && (
+                  <GlassCard className="p-4 border-red-500/50 bg-red-500/10">
+                    <div className="text-red-400 text-sm mb-2">{error}</div>
+                    <button onClick={() => fetchInitialData()} className="text-xs bg-red-500/20 px-2 py-1 rounded text-red-300 hover:text-red-200">Retry</button>
+                  </GlassCard>
+                )}
+
+                {displayEmails.map((email) => (
+                  <GlassCard
+                    key={email.id}
+                    className={`p-4 cursor-pointer transition-all ${selectedEmail?.id === email.id
+                      ? 'border-cyan-400/50 bg-white/15'
+                      : ''
+                      }`}
+                    onClick={() => setSelectedEmail(email)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 overflow-hidden">
+                        <div className="font-semibold text-white mb-1 truncate">
+                          {email.sender_name}
+                        </div>
+                        <div className="text-sm text-gray-400 mb-2 truncate">
+                          {email.subject}
+                        </div>
+                      </div>
+                      <div className="ml-2 flex-shrink-0">
+                        {getStatusBadge(email.status)}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500 line-clamp-2 mb-2">
+                      {email.preview}
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{formatTime(email.timestamp)}</span>
+                      <span className="truncate max-w-[120px]">{email.from}</span>
+                    </div>
+                  </GlassCard>
+                ))}
+
+                {!loading && displayEmails.length === 0 && !error && (
+                  <div className="text-center text-gray-500 py-8">
+                    No emails found.
+                  </div>
+                )}
+
+                {/* Load More Button */}
+                {/* Show if strict count check passes. For 'all', totalCount is from backend. For 'needs_review', same. */}
+                {/* Note: if we filter client side (processed/escalated), totalCount is for ALL emails, so this check is inaccurate. */}
+                {/* But for 'all' and 'needs_review' it should be fine. */}
+                {(filter === 'all' || filter === 'needs_review') && (offset + limit < totalCount) && (
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loading}
+                    className="w-full py-2 text-sm text-cyan-400 hover:text-cyan-300 hover:bg-white/5 rounded-lg transition-all disabled:opacity-50 mb-3"
+                  >
+                    {loading ? 'Loading...' : 'Load More'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-5 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pr-2">
+              {selectedEmail ? (
+                <EmailDetail email={selectedEmail} />
+              ) : (
+                <GlassCard className="p-8 flex items-center justify-center h-full min-h-[400px]">
+                  <div className="text-center text-gray-500">
+                    <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Select an email to view details</p>
+                  </div>
+                </GlassCard>
+              )}
+            </div>
           </div>
         </div>
       </div>

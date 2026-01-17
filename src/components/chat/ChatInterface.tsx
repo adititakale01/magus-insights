@@ -40,6 +40,7 @@ export function ChatInterface() {
 
         try {
             const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+            const modelName = import.meta.env.VITE_OPENAI_MODEL_NAME;
 
             if (!apiKey) {
                 throw new Error("OpenAI API Key is missing. Please check your .env file.");
@@ -81,7 +82,7 @@ Keep answers concise and professional.
                     "Authorization": `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "gpt-4o", // or gpt-4o-mini / gpt-3.5-turbo depending on availability, using standard gpt-4o or 3.5-turbo 
+                    model: modelName, // or gpt-4o-mini / gpt-3.5-turbo depending on availability, using standard gpt-4o or 3.5-turbo 
                     messages: [
                         { role: "system", content: systemPrompt },
                         ...messages.slice(-5).map(m => ({ role: m.role, content: m.content })), // History context
