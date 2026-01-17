@@ -6,7 +6,7 @@ export interface City {
   y: number; // percentage position on map (0-100)
 }
 
-export interface Transaction {
+export interface Proposal {
   id: string;
   date: string;
   commodity: string;
@@ -20,7 +20,7 @@ export interface FreightRoute {
   id: string;
   origin: City;
   destination: City;
-  transactions: Transaction[];
+  proposals: Proposal[];
 }
 
 // Convert lat/lng to x/y percentage (equirectangular projection)
@@ -43,7 +43,7 @@ const cities: Record<string, City> = {
   hoChiMinh: { name: "Ho Chi Minh City", country: "Vietnam", ...toMapCoords(10.8231, 106.6297) },
   tokyo: { name: "Tokyo", country: "Japan", ...toMapCoords(35.6762, 139.6503) },
   yokohama: { name: "Yokohama", country: "Japan", ...toMapCoords(35.4437, 139.6380) },
-  
+
   // Europe
   rotterdam: { name: "Rotterdam", country: "Netherlands", ...toMapCoords(51.9244, 4.4777) },
   hamburg: { name: "Hamburg", country: "Germany", ...toMapCoords(53.5511, 9.9937) },
@@ -52,7 +52,7 @@ const cities: Record<string, City> = {
   gdansk: { name: "Gdansk", country: "Poland", ...toMapCoords(54.3520, 18.6466) },
   piraeus: { name: "Piraeus", country: "Greece", ...toMapCoords(37.9475, 23.6413) },
   barcelona: { name: "Barcelona", country: "Spain", ...toMapCoords(41.3851, 2.1734) },
-  
+
   // Americas
   losAngeles: { name: "Los Angeles", country: "USA", ...toMapCoords(33.7490, -118.2417) },
   longBeach: { name: "Long Beach", country: "USA", ...toMapCoords(33.7701, -118.1937) },
@@ -61,21 +61,21 @@ const cities: Record<string, City> = {
   manzanillo: { name: "Manzanillo", country: "Mexico", ...toMapCoords(19.0544, -104.3152) },
   santos: { name: "Santos", country: "Brazil", ...toMapCoords(-23.9608, -46.3336) },
   vancouver: { name: "Vancouver", country: "Canada", ...toMapCoords(49.2827, -123.1207) },
-  
+
   // Oceania & Middle East
   melbourne: { name: "Melbourne", country: "Australia", ...toMapCoords(-37.8136, 144.9631) },
   sydney: { name: "Sydney", country: "Australia", ...toMapCoords(-33.8688, 151.2093) },
   dubai: { name: "Dubai", country: "UAE", ...toMapCoords(25.2048, 55.2708) },
 };
 
-// Generate realistic transaction data
-const generateTransactions = (count: number): Transaction[] => {
+// Generate realistic proposal data
+const generateProposals = (count: number): Proposal[] => {
   const commodities = ["Electronics", "Machinery", "Auto Parts", "Textiles", "Chemicals", "Furniture", "Consumer Goods", "Medical Equipment"];
   const statuses = ["Delivered", "In Transit", "Cleared", "Pending"];
   const vessels = ["MSC Oscar", "Ever Given", "CSCL Globe", "Madrid Maersk", "HMM Algeciras", "Cosco Shipping Universe"];
-  
+
   return Array.from({ length: count }, (_, i) => ({
-    id: `TXN-${1000 + i}`,
+    id: `PRP-${1000 + i}`,
     date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     commodity: commodities[Math.floor(Math.random() * commodities.length)],
     weight: `${(Math.random() * 500 + 50).toFixed(1)} TEU`,
@@ -88,38 +88,38 @@ const generateTransactions = (count: number): Transaction[] => {
 // Define realistic freight routes
 export const freightRoutes: FreightRoute[] = [
   // Asia to Europe
-  { id: "r1", origin: cities.shanghai, destination: cities.rotterdam, transactions: generateTransactions(8) },
-  { id: "r2", origin: cities.ningbo, destination: cities.hamburg, transactions: generateTransactions(6) },
-  { id: "r3", origin: cities.shenzhen, destination: cities.felixstowe, transactions: generateTransactions(5) },
-  { id: "r4", origin: cities.busan, destination: cities.antwerp, transactions: generateTransactions(4) },
-  { id: "r5", origin: cities.qingdao, destination: cities.gdansk, transactions: generateTransactions(3) },
-  { id: "r6", origin: cities.hongKong, destination: cities.piraeus, transactions: generateTransactions(4) },
-  { id: "r7", origin: cities.singapore, destination: cities.barcelona, transactions: generateTransactions(3) },
-  
+  { id: "r1", origin: cities.shanghai, destination: cities.rotterdam, proposals: generateProposals(8) },
+  { id: "r2", origin: cities.ningbo, destination: cities.hamburg, proposals: generateProposals(6) },
+  { id: "r3", origin: cities.shenzhen, destination: cities.felixstowe, proposals: generateProposals(5) },
+  { id: "r4", origin: cities.busan, destination: cities.antwerp, proposals: generateProposals(4) },
+  { id: "r5", origin: cities.qingdao, destination: cities.gdansk, proposals: generateProposals(3) },
+  { id: "r6", origin: cities.hongKong, destination: cities.piraeus, proposals: generateProposals(4) },
+  { id: "r7", origin: cities.singapore, destination: cities.barcelona, proposals: generateProposals(3) },
+
   // Asia to Americas
-  { id: "r8", origin: cities.shanghai, destination: cities.losAngeles, transactions: generateTransactions(7) },
-  { id: "r9", origin: cities.shenzhen, destination: cities.longBeach, transactions: generateTransactions(6) },
-  { id: "r10", origin: cities.busan, destination: cities.vancouver, transactions: generateTransactions(4) },
-  { id: "r11", origin: cities.ningbo, destination: cities.newYork, transactions: generateTransactions(5) },
-  { id: "r12", origin: cities.hoChiMinh, destination: cities.manzanillo, transactions: generateTransactions(3) },
-  { id: "r13", origin: cities.tokyo, destination: cities.savannah, transactions: generateTransactions(4) },
-  
+  { id: "r8", origin: cities.shanghai, destination: cities.losAngeles, proposals: generateProposals(7) },
+  { id: "r9", origin: cities.shenzhen, destination: cities.longBeach, proposals: generateProposals(6) },
+  { id: "r10", origin: cities.busan, destination: cities.vancouver, proposals: generateProposals(4) },
+  { id: "r11", origin: cities.ningbo, destination: cities.newYork, proposals: generateProposals(5) },
+  { id: "r12", origin: cities.hoChiMinh, destination: cities.manzanillo, proposals: generateProposals(3) },
+  { id: "r13", origin: cities.tokyo, destination: cities.savannah, proposals: generateProposals(4) },
+
   // Asia to Oceania
-  { id: "r14", origin: cities.shanghai, destination: cities.melbourne, transactions: generateTransactions(3) },
-  { id: "r15", origin: cities.singapore, destination: cities.sydney, transactions: generateTransactions(4) },
-  
+  { id: "r14", origin: cities.shanghai, destination: cities.melbourne, proposals: generateProposals(3) },
+  { id: "r15", origin: cities.singapore, destination: cities.sydney, proposals: generateProposals(4) },
+
   // Middle East connections
-  { id: "r16", origin: cities.dubai, destination: cities.rotterdam, transactions: generateTransactions(5) },
-  { id: "r17", origin: cities.singapore, destination: cities.dubai, transactions: generateTransactions(4) },
-  { id: "r18", origin: cities.dubai, destination: cities.newYork, transactions: generateTransactions(3) },
-  
+  { id: "r16", origin: cities.dubai, destination: cities.rotterdam, proposals: generateProposals(5) },
+  { id: "r17", origin: cities.singapore, destination: cities.dubai, proposals: generateProposals(4) },
+  { id: "r18", origin: cities.dubai, destination: cities.newYork, proposals: generateProposals(3) },
+
   // Intra-Asia
-  { id: "r19", origin: cities.shanghai, destination: cities.singapore, transactions: generateTransactions(5) },
-  { id: "r20", origin: cities.busan, destination: cities.yokohama, transactions: generateTransactions(4) },
-  
+  { id: "r19", origin: cities.shanghai, destination: cities.singapore, proposals: generateProposals(5) },
+  { id: "r20", origin: cities.busan, destination: cities.yokohama, proposals: generateProposals(4) },
+
   // South America
-  { id: "r21", origin: cities.shanghai, destination: cities.santos, transactions: generateTransactions(3) },
-  { id: "r22", origin: cities.rotterdam, destination: cities.santos, transactions: generateTransactions(2) },
+  { id: "r21", origin: cities.shanghai, destination: cities.santos, proposals: generateProposals(3) },
+  { id: "r22", origin: cities.rotterdam, destination: cities.santos, proposals: generateProposals(2) },
 ];
 
 // Get all unique cities from routes
@@ -135,6 +135,6 @@ export const getAllCities = (): City[] => {
 // Route statistics
 export const routeStats = {
   totalRoutes: freightRoutes.length,
-  totalTransactions: freightRoutes.reduce((acc, r) => acc + r.transactions.length, 0),
+  totalProposals: freightRoutes.reduce((acc, r) => acc + r.proposals.length, 0),
   totalCities: getAllCities().length,
 };

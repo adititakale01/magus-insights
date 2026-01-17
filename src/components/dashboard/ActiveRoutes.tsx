@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { freightRoutes, getAllCities, routeStats, FreightRoute, City } from "./freightRoutes";
 
-type SelectedItem = 
+type SelectedItem =
   | { type: "route"; data: FreightRoute }
   | { type: "city"; data: City; routes: FreightRoute[] }
   | null;
@@ -62,15 +62,15 @@ export function ActiveRoutes() {
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
           <span>{routeStats.totalRoutes} Routes</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-          <span>{routeStats.totalTransactions} Transactions</span>
+          <span>{routeStats.totalProposals} Proposals</span>
         </div>
       </div>
 
       <div className="flex gap-4 h-[340px]">
         {/* World Map */}
         <div className="flex-1 relative rounded-xl overflow-hidden bg-background/60 border border-border/30">
-          <svg 
-            viewBox="0 0 100 50" 
+          <svg
+            viewBox="0 0 100 50"
             className="absolute inset-0 w-full h-full"
             preserveAspectRatio="xMidYMid slice"
           >
@@ -172,7 +172,7 @@ export function ActiveRoutes() {
                     <span className="text-muted-foreground mx-2">→</span>
                     <span className="font-medium">{route.destination.name}</span>
                     <span className="text-muted-foreground ml-3">
-                      {route.transactions.length} transactions
+                      {route.proposals.length} proposals
                     </span>
                   </span>
                 );
@@ -208,7 +208,7 @@ export function ActiveRoutes() {
             <div className="flex-1 flex items-center justify-center text-center">
               <div className="text-muted-foreground">
                 <p className="text-sm">Click on a route or city</p>
-                <p className="text-xs mt-1">to view transaction details</p>
+                <p className="text-xs mt-1">to view proposal details</p>
               </div>
             </div>
           )}
@@ -235,30 +235,29 @@ function RouteDetails({ route }: { route: FreightRoute }) {
         </div>
       </div>
 
-      {/* Transactions */}
+      {/* Proposals */}
       <div className="space-y-3">
         <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          Recent Transactions ({route.transactions.length})
+          Recent Proposals ({route.proposals.length})
         </p>
-        {route.transactions.map((txn) => (
-          <div key={txn.id} className="p-3 rounded-lg bg-background/40 border border-border/30">
+        {route.proposals.map((proposal) => (
+          <div key={proposal.id} className="p-3 rounded-lg bg-background/40 border border-border/30">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">{txn.date}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                txn.status === "Delivered" ? "bg-success/20 text-success" :
-                txn.status === "In Transit" ? "bg-primary/20 text-primary" :
-                "bg-muted text-muted-foreground"
-              }`}>
-                {txn.status}
+              <span className="text-xs text-muted-foreground">{proposal.date}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${proposal.status === "Delivered" ? "bg-success/20 text-success" :
+                  proposal.status === "In Transit" ? "bg-primary/20 text-primary" :
+                    "bg-muted text-muted-foreground"
+                }`}>
+                {proposal.status}
               </span>
             </div>
-            <p className="text-sm font-medium text-foreground">{txn.commodity}</p>
+            <p className="text-sm font-medium text-foreground">{proposal.commodity}</p>
             <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-              <span>{txn.weight}</span>
-              <span className="font-medium text-foreground">{txn.value}</span>
+              <span>{proposal.weight}</span>
+              <span className="font-medium text-foreground">{proposal.value}</span>
             </div>
-            {txn.vessel && (
-              <p className="text-xs text-muted-foreground mt-1">Vessel: {txn.vessel}</p>
+            {proposal.vessel && (
+              <p className="text-xs text-muted-foreground mt-1">Vessel: {proposal.vessel}</p>
             )}
           </div>
         ))}
@@ -297,21 +296,20 @@ function CityDetails({ city, routes }: { city: City; routes: FreightRoute[] }) {
         {routes.map((route) => {
           const isOutbound = route.origin.name === city.name;
           const otherCity = isOutbound ? route.destination : route.origin;
-          
+
           return (
             <div key={route.id} className="p-3 rounded-lg bg-background/40 border border-border/30">
               <div className="flex items-center gap-2">
-                <span className={`text-xs px-2 py-0.5 rounded ${
-                  isOutbound ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"
-                }`}>
+                <span className={`text-xs px-2 py-0.5 rounded ${isOutbound ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"
+                  }`}>
                   {isOutbound ? "→ OUT" : "← IN"}
                 </span>
                 <span className="text-sm font-medium text-foreground">{otherCity.name}</span>
               </div>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span>{route.transactions.length} transactions</span>
+                <span>{route.proposals.length} proposals</span>
                 <span className="font-medium text-foreground">
-                  {route.transactions.reduce((acc, t) => {
+                  {route.proposals.reduce((acc, t) => {
                     const val = parseInt(t.value.replace(/[$,]/g, ''));
                     return acc + val;
                   }, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}

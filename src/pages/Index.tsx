@@ -4,7 +4,8 @@ import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ProcessingChart } from "@/components/dashboard/ProcessingChart";
 import { ActiveRoutes } from "@/components/dashboard/ActiveRoutes";
-import { TransactionsTable } from "@/components/dashboard/TransactionsTable";
+import { ProposalsTable } from "@/components/dashboard/ProposalsTable";
+import { ClientPerformanceTable } from "@/components/dashboard/ClientPerformanceTable";
 import { TimeFilter } from "@/components/dashboard/TimeFilter";
 import { Inbox } from "@/components/dashboard/Inbox";
 import AskMagus from "@/pages/AskMagus";
@@ -78,9 +79,14 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Transactions Table */}
-            <div className="animate-fade-in" style={{ animationDelay: "500ms" }}>
-              <TransactionsTable />
+            {/* Proposals Table */}
+            <div className="animate-fade-in mb-6" style={{ animationDelay: "500ms" }}>
+              <ProposalsTable />
+            </div>
+
+            {/* Client Performance Table */}
+            <div className="animate-fade-in" style={{ animationDelay: "600ms" }}>
+              <ClientPerformanceTable />
             </div>
           </>
         ) : activeTab === "inbox" ? (
