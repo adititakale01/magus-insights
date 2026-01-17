@@ -4,7 +4,7 @@ import { GlassCard } from './GlassCard';
 import { EmailDetail } from './EmailDetail';
 import { Email, EmailRecord, listEmailRecords, getStatusCounts, listNeedsHumanDecision } from '@/lib/api';
 
-type FilterType = 'all' | 'processed' | 'needs_review' | 'escalated';
+type FilterType = 'all' | 'processed' | 'needs_review' | 'auto_replied' | 'ignored';
 
 export function Inbox() {
   const [emails, setEmails] = useState<Email[]>([]);
@@ -76,7 +76,7 @@ export function Inbox() {
         // User request: "For other filters, use /email-records and filter client-side OR (preferred) request all and filter client-side initially."
         // "Maintain pagination state (limit/offset/count)"
         // If we filter client-side, pagination from backend becomes weird because the page might contain mixed statuses.
-        // If the backend doesn't support status filtering for 'processed'/'escalated', checking page by page is hard.
+        // If the backend doesn't support status filtering for 'processed'/'auto_replied', checking page by page is hard.
         // User said: "request all and filter client-side initially. Keep it lean—no complex server filtering unless backend supports it."
         // If the total count is small enough, we can fetch all. But endpoints are paged.
         // If we only fetch page 1, we might not see "processed" emails if page 1 is full of "unprocessed".
@@ -85,12 +85,12 @@ export function Inbox() {
         // But then the client-side filter `email.status === filter` would hide everything if the page doesn't have matches.
 
         // Let's assume for 'all', we just show everything.
-        // For 'processed' and 'escalated', if we don't have a backend endpoint, the user suggestion "request all" implies fetching everything. 
+        // For 'processed' and 'auto_replied', if we don't have a backend endpoint, the user suggestion "request all" implies fetching everything. 
         // But calling `limit=1000` might be too much?
         // Let's stick to:
         // 'all': /email-records
         // 'needs_review': /needs-human-decision
-        // 'processed' / 'escalated': We'll reuse /email-records but we accept that we might show fewer items effectively if we filter client side, 
+        // 'processed' / 'auto_replied': We'll reuse /email-records but we accept that we might show fewer items effectively if we filter client side, 
         // OR we just fetch /email-records (all) and filter in UI. If we fetch only 50 and filter, we might show 0.
         // Let's interpret "request all" as just using the main list and filtering in UI interactively on the loaded items?
         // OR does the user mean we should try to fetch *all* pages?
@@ -103,7 +103,7 @@ export function Inbox() {
         // Compromise:
         // For 'all': fetch paged /email-records.
         // For 'needs_review': fetch paged /needs-human-decision.
-        // For 'processed'/'escalated': warn this might be incomplete or just fetch /email-records? 
+        // For 'processed'/'auto_replied': warn this might be incomplete or just fetch /email-records? 
         // Actually, if 'needs_review' is separate, maybe we can assume /email-records roughly corresponds to 'all'.
         // If the user selects 'processed', and we only have page 1 of 'all', we might not find them.
 
@@ -174,9 +174,10 @@ export function Inbox() {
       console.error('Failed to parse trace', e);
     }
 
-    let status_ui: 'processed' | 'needs_review' | 'escalated' = 'needs_review';
-    if (['auto_processed', 'human_confirmed_replied'].includes(record.status)) status_ui = 'processed';
-    else if (['human_rejected'].includes(record.status)) status_ui = 'escalated';
+    let status_ui: 'processed' | 'needs_review' | 'auto_replied' | 'ignored' = 'needs_review';
+    if (['human_confirmed_replied'].includes(record.status)) status_ui = 'processed';
+    else if (['auto_processed'].includes(record.status)) status_ui = 'auto_replied';
+    else if (['human_rejected'].includes(record.status)) status_ui = 'ignored';
     else status_ui = 'needs_review';
 
     const timestamp = record.time || record.updated_at || new Date().toISOString();
@@ -199,6 +200,7 @@ export function Inbox() {
       status: status_ui,
       backend_status: record.status,
       timestamp: timestamp,
+      updated_at: record.updated_at,
       response_time: 0,
       confidence_score: 0,
       confidence: record.confidence,
@@ -220,12 +222,15 @@ export function Inbox() {
       return Object.values(counts).reduce((a, b) => a + b, 0);
     }
     if (filterType === 'processed') {
-      return (counts['auto_processed'] || 0) + (counts['human_confirmed_replied'] || 0);
+      return (counts['human_confirmed_replied'] || 0);
     }
     if (filterType === 'needs_review') {
       return (counts['needs_human_decision'] || 0) + (counts['unprocessed'] || 0);
     }
-    if (filterType === 'escalated') {
+    if (filterType === 'auto_replied') {
+      return (counts['auto_processed'] || 0);
+    }
+    if (filterType === 'ignored') {
       return (counts['human_rejected'] || 0);
     }
     return 0;
@@ -247,11 +252,18 @@ export function Inbox() {
             <span className="text-xs text-yellow-400 font-medium">Needs Review</span>
           </div>
         );
-      case 'escalated':
+      case 'auto_replied':
         return (
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/20 border border-red-500/50">
-            <AlertCircle className="w-3 h-3 text-red-400" />
-            <span className="text-xs text-red-400 font-medium">Escalated</span>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/50">
+            <CheckCircle2 className="w-3 h-3 text-blue-400" />
+            <span className="text-xs text-blue-400 font-medium">Auto Replied</span>
+          </div>
+        );
+      case 'ignored':
+        return (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-500/20 border border-gray-500/50">
+            <AlertCircle className="w-3 h-3 text-gray-400" />
+            <span className="text-xs text-gray-400 font-medium">Ignored</span>
           </div>
         );
     }
@@ -274,7 +286,7 @@ export function Inbox() {
   const displayEmails = emails.filter(email => {
     // If we fetched specific endpoint for needs_review, no need to filter again?
     // Actually, backend returns filtered list.
-    // BUT for 'processed' and 'escalated', we rely on /email-records (all) so we MUST filter.
+    // BUT for 'processed', 'auto_replied', and 'ignored', we rely on /email-records (all) so we MUST filter.
     if (filter === 'all') return true;
     if (filter === 'needs_review') return true; // Endpoint already filtered
     return email.status === filter;
@@ -297,7 +309,7 @@ export function Inbox() {
                   <span className="text-sm font-medium">Filters</span>
                 </div>
                 <div className="space-y-2">
-                  {(['all', 'processed', 'needs_review', 'escalated'] as FilterType[]).map((f) => (
+                  {(['all', 'processed', 'needs_review', 'auto_replied', 'ignored'] as FilterType[]).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
@@ -306,11 +318,14 @@ export function Inbox() {
                         : 'text-gray-400 hover:bg-white/10 hover:text-white'
                         }`}
                     >
-                      <span className="text-sm capitalize">{f.replace('_', ' ')} {f === 'all' ? 'Emails' : ''}</span>
+                      <span className="text-sm capitalize">
+                        {f === 'all' ? 'All Emails' : f === 'auto_replied' ? 'Auto Replied' : f.replace('_', ' ')}
+                      </span>
                       <span className={`px-2 py-0.5 rounded-full text-xs ${f === 'processed' ? 'bg-emerald-500/20 text-emerald-400' :
                           f === 'needs_review' ? 'bg-yellow-500/20 text-yellow-400' :
-                            f === 'escalated' ? 'bg-red-500/20 text-red-400' :
-                              'bg-white/20'
+                            f === 'auto_replied' ? 'bg-blue-500/20 text-blue-400' :
+                              f === 'ignored' ? 'bg-gray-500/20 text-gray-400' :
+                                'bg-white/20'
                         }`}>
                         {getFilterCount(f)}
                       </span>
@@ -381,11 +396,11 @@ export function Inbox() {
                   </div>
                 )}
 
-                {/* Load More Button */}
-                {/* Show if strict count check passes. For 'all', totalCount is from backend. For 'needs_review', same. */}
-                {/* Note: if we filter client side (processed/escalated), totalCount is for ALL emails, so this check is inaccurate. */}
-                {/* But for 'all' and 'needs_review' it should be fine. */}
-                {(filter === 'all' || filter === 'needs_review') && (offset + limit < totalCount) && (
+              {/* Load More Button */}
+              {/* Show if strict count check passes. For 'all', totalCount is from backend. For 'needs_review', same. */}
+              {/* Note: if we filter client side (processed/auto_replied), totalCount is for ALL emails, so this check is inaccurate. */}
+              {/* But for 'all' and 'needs_review' it should be fine. */}
+              {(filter === 'all' || filter === 'needs_review') && (offset + limit < totalCount) && (
                   <button
                     onClick={handleLoadMore}
                     disabled={loading}

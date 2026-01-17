@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, FileSpreadsheet, Globe, Clock, TrendingUp, Edit, Send, ArrowRight, CheckCircle2, Zap, Brain, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Mail, FileSpreadsheet, Globe, Clock, TrendingUp, Edit, Send, ArrowRight, CheckCircle2, Zap, Brain, Loader2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { GlassCard } from './GlassCard';
 import { Email, submitEmailDecision } from '@/lib/api';
 
@@ -11,10 +11,13 @@ export function EmailDetail({ email }: EmailDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftText, setDraftText] = useState(email.draft_response);
   const [isSending, setIsSending] = useState(false);
+  const [isIgnoring, setIsIgnoring] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [ignoreSuccess, setIgnoreSuccess] = useState(false);
   const [isSent, setIsSent] = useState(email.sent || false);
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Check if email was sent by looking at steps
   const checkIfSent = (email: Email): boolean => {
@@ -37,8 +40,22 @@ export function EmailDetail({ email }: EmailDetailProps) {
     setDraftText(email.draft_response);
     setSendError(null);
     setSendSuccess(false);
+    setIgnoreSuccess(false);
     setIsSent(checkIfSent(email));
   }, [email.id, email.draft_response, email.sent, email.steps]);
+
+  // Update current time every minute for elapsed time calculation
+  useEffect(() => {
+    // Only update if email hasn't been processed yet
+    const isProcessed = email.sent || isSent || email.status === 'processed';
+    if (!isProcessed) {
+      const interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 60000); // Update every minute
+      
+      return () => clearInterval(interval);
+    }
+  }, [email.sent, isSent, email.status]);
 
   const handleSendReply = async () => {
     if (!draftText.trim()) {
@@ -74,6 +91,35 @@ export function EmailDetail({ email }: EmailDetailProps) {
       setSendError(err.message || 'Failed to send reply. Please try again.');
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleIgnore = async () => {
+    setIsIgnoring(true);
+    setSendError(null);
+    setSendSuccess(false);
+    setIgnoreSuccess(false);
+
+    try {
+      await submitEmailDecision({
+        id: email.id,
+        decision: 'reject',
+        refined_quote: '',
+        comment: ''
+      });
+      
+      // On successful ignore, mark as processed (rejected)
+      setIsSent(false);
+      setIgnoreSuccess(true);
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setIgnoreSuccess(false);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Failed to ignore email:', err);
+      setSendError(err.message || 'Failed to ignore email. Please try again.');
+    } finally {
+      setIsIgnoring(false);
     }
   };
 
@@ -127,11 +173,55 @@ export function EmailDetail({ email }: EmailDetailProps) {
     });
   };
 
+  // Calculate response time: difference between email received and human reply (or current time if not replied)
+  const calculateResponseTime = (): number => {
+    if (!email.timestamp) return 0;
+    
+    const emailTime = new Date(email.timestamp).getTime();
+    if (isNaN(emailTime)) return 0;
+    
+    let replyTime: number | null = null;
+    
+    // Check for Human Decision step timestamp first
+    if (email.steps && email.steps.length > 0) {
+      const humanDecisionStep = email.steps.find((step: any) => {
+        const title = (step.title || step.action || '').toLowerCase();
+        return title.includes('human decision');
+      });
+      
+      if (humanDecisionStep?.timestamp) {
+        const stepTime = new Date(humanDecisionStep.timestamp).getTime();
+        if (!isNaN(stepTime)) {
+          replyTime = stepTime;
+        }
+      }
+    }
+    
+    // Fallback to updated_at if Human Decision step doesn't have timestamp
+    if (!replyTime && email.updated_at && (email.sent || isSent || email.status === 'processed')) {
+      const updatedTime = new Date(email.updated_at).getTime();
+      if (!isNaN(updatedTime)) {
+        replyTime = updatedTime;
+      }
+    }
+    
+    // If we have a reply time, calculate the difference (time taken to respond)
+    if (replyTime) {
+      return Math.floor((replyTime - emailTime) / 1000); // Return in seconds
+    }
+    
+    // If not processed yet, show elapsed time since email was received
+    return Math.floor((currentTime - emailTime) / 1000); // Return elapsed time in seconds
+  };
+
   const formatResponseTime = (seconds: number) => {
+    if (seconds === 0) return '0m 0s';
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}m ${secs}s`;
   };
+
+  const responseTimeSeconds = calculateResponseTime();
 
   const formatStepData = (data: any): string => {
     if (!data) return '';
@@ -232,7 +322,7 @@ export function EmailDetail({ email }: EmailDetailProps) {
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
               <div className="text-xs text-gray-400 mb-1">Response Time</div>
-              <div className="text-lg font-bold text-cyan-400">{formatResponseTime(email.response_time)}</div>
+              <div className="text-lg font-bold text-cyan-400">{formatResponseTime(responseTimeSeconds)}</div>
             </div>
           </div>
         </div>
@@ -303,10 +393,29 @@ export function EmailDetail({ email }: EmailDetailProps) {
             </div>
           )}
 
+          {ignoreSuccess && (
+            <div className="mb-4 p-3 rounded-lg bg-gray-500/10 border border-gray-500/50">
+              <div className="text-sm text-gray-400 flex items-center gap-2">
+                <X className="w-4 h-4" />
+                Mail ignored
+              </div>
+            </div>
+          )}
+
           {isSent ? (
             <div className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/50">
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               <span className="text-emerald-400 font-medium">Mail Sent</span>
+            </div>
+          ) : email.status === 'auto_replied' || email.backend_status === 'auto_processed' ? (
+            <div className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/50">
+              <Zap className="w-5 h-5 text-blue-400" />
+              <span className="text-blue-400 font-medium">Auto Replied</span>
+            </div>
+          ) : email.status === 'ignored' || email.backend_status === 'human_rejected' ? (
+            <div className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-500/10 border border-gray-500/50">
+              <X className="w-5 h-5 text-gray-400" />
+              <span className="text-gray-400 font-medium">Mail Ignored</span>
             </div>
           ) : isEditing ? (
             <div className="flex gap-2">
@@ -340,23 +449,42 @@ export function EmailDetail({ email }: EmailDetailProps) {
               </button>
             </div>
           ) : (
-            <button 
-              onClick={handleSendReply}
-              disabled={isSending || !draftText.trim()}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-sm font-medium transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Send Reply
-                </>
-              )}
-            </button>
+            <div className="flex gap-2 items-center">
+              <button 
+                onClick={handleIgnore}
+                disabled={isIgnoring || isSending || isSent}
+                className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300 hover:text-white text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                {isIgnoring ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Ignoring...
+                  </>
+                ) : (
+                  <>
+                    <X className="w-3 h-3" />
+                    Ignore
+                  </>
+                )}
+              </button>
+              <button 
+                onClick={handleSendReply}
+                disabled={isSending || isIgnoring || isSent || !draftText.trim()}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-sm font-medium transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Send Reply
+                  </>
+                )}
+              </button>
+            </div>
           )}
         </GlassCard>
       )}

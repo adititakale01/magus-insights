@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Clock, Mail, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertCircle, CheckCircle, XCircle, BarChart } from "lucide-react";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ProcessingChart } from "@/components/dashboard/ProcessingChart";
@@ -9,10 +9,52 @@ import { ClientPerformanceTable } from "@/components/dashboard/ClientPerformance
 import { TimeFilter } from "@/components/dashboard/TimeFilter";
 import { Inbox } from "@/components/dashboard/Inbox";
 import AskMagus from "@/pages/AskMagus";
+import { getStatusCounts } from "@/lib/api";
+
+interface StatusCounts {
+  auto_processed: number;
+  needs_human_decision: number;
+  human_confirmed_replied: number;
+  human_rejected: number;
+  total: number;
+}
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<"dashboard" | "inbox" | "ask-magus">("dashboard");
   const [timeFilter, setTimeFilter] = useState("Last Hour");
+  const [statusCounts, setStatusCounts] = useState<StatusCounts | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatusCounts = async () => {
+      try {
+        setLoading(true);
+        const counts = await getStatusCounts();
+        setStatusCounts({
+          auto_processed: counts.auto_processed || 0,
+          needs_human_decision: counts.needs_human_decision || 0,
+          human_confirmed_replied: counts.human_confirmed_replied || 0,
+          human_rejected: counts.human_rejected || 0,
+          total: counts.total || 0,
+        });
+      } catch (error) {
+        console.error("Failed to fetch status counts:", error);
+        setStatusCounts({
+          auto_processed: 0,
+          needs_human_decision: 0,
+          human_confirmed_replied: 0,
+          human_rejected: 0,
+          total: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (activeTab === "dashboard") {
+      fetchStatusCounts();
+    }
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen">
@@ -32,39 +74,57 @@ const Index = () => {
 
             {/* Metrics Grid */}
             <div
-              className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-6"
               style={{ animationDelay: "100ms" }}
             >
               <div className="animate-fade-in" style={{ animationDelay: "0ms" }}>
                 <MetricCard
-                  title="Avg Response Time"
-                  value="4m 12s"
-                  subtitle="12% faster vs last hour"
+                  title="Auto Processed"
+                  value={loading ? "..." : String(statusCounts?.auto_processed || 0)}
+                  subtitle="Automatically handled"
                   subtitleType="success"
-                  icon={Clock}
-                  iconBg="bg-primary/20"
+                  icon={CheckCircle}
+                  iconBg="bg-success/20"
                 />
               </div>
               <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
                 <MetricCard
-                  title="Mails Processed"
-                  value="92"
-                  subtitle="8 new in queue"
-                  subtitleType="neutral"
-                  icon={Mail}
-                  iconBg="bg-secondary/20"
-                  showBar
-                  barProgress={85}
+                  title="Needs Human Decision"
+                  value={loading ? "..." : String(statusCounts?.needs_human_decision || 0)}
+                  subtitle="Requires attention"
+                  subtitleType="warning"
+                  icon={AlertCircle}
+                  iconBg="bg-warning/20"
                 />
               </div>
               <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
                 <MetricCard
-                  title="Escalated Requests"
-                  value="7"
-                  subtitle="Requires attention"
-                  subtitleType="warning"
-                  icon={AlertTriangle}
-                  iconBg="bg-warning/20"
+                  title="Human Confirmed"
+                  value={loading ? "..." : String(statusCounts?.human_confirmed_replied || 0)}
+                  subtitle="Confirmed & replied"
+                  subtitleType="success"
+                  icon={CheckCircle}
+                  iconBg="bg-primary/20"
+                />
+              </div>
+              <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
+                <MetricCard
+                  title="Human Rejected"
+                  value={loading ? "..." : String(statusCounts?.human_rejected || 0)}
+                  subtitle="Rejected by human"
+                  subtitleType="neutral"
+                  icon={XCircle}
+                  iconBg="bg-muted/20"
+                />
+              </div>
+              <div className="animate-fade-in" style={{ animationDelay: "400ms" }}>
+                <MetricCard
+                  title="Total Emails"
+                  value={loading ? "..." : String(statusCounts?.total || 0)}
+                  subtitle="All email records"
+                  subtitleType="neutral"
+                  icon={BarChart}
+                  iconBg="bg-secondary/20"
                 />
               </div>
             </div>
