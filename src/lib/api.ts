@@ -112,3 +112,22 @@ export async function getStatusCounts(): Promise<Record<string, number>> {
 export async function listNeedsHumanDecision(params: { limit: number; offset: number }): Promise<PagedResponse<EmailRecord>> {
     return apiGet<PagedResponse<EmailRecord>>('/email-records/needs-human-decision', params);
 }
+
+export async function fetchAllEmails(): Promise<EmailRecord[]> {
+    const limit = 100;
+    let offset = 0;
+    let allEmails: EmailRecord[] = [];
+    let hasMore = true;
+
+    while (hasMore) {
+        const res = await listEmailRecords({ limit, offset });
+        allEmails = [...allEmails, ...res.items];
+
+        if (allEmails.length >= res.count || res.items.length < limit) {
+            hasMore = false;
+        } else {
+            offset += limit;
+        }
+    }
+    return allEmails;
+}

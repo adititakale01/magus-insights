@@ -53,10 +53,12 @@ export function InteractiveGlobe({
     // Configure auto-rotation
     useEffect(() => {
         if (globeEl.current) {
-            globeEl.current.controls().autoRotate = true;
-            globeEl.current.controls().autoRotateSpeed = 0.5;
+            const controls = globeEl.current.controls();
+            const shouldRotate = !selectedRouteId && !selectedCityName;
+            controls.autoRotate = shouldRotate;
+            controls.autoRotateSpeed = 0.5;
         }
-    }, []);
+    }, [selectedRouteId, selectedCityName]);
 
     const cities = useMemo(() => getAllCities(), []);
 
@@ -126,8 +128,10 @@ export function InteractiveGlobe({
                             if (globeEl.current) globeEl.current.controls().autoRotate = false;
                         } else {
                             setHoveredRouteId(null);
-                            // Resume rotation if not dragging (simplified: just resume)
-                            if (globeEl.current) globeEl.current.controls().autoRotate = true;
+                            // Resume rotation only if nothing is selected
+                            if (globeEl.current && !selectedRouteId && !selectedCityName) {
+                                globeEl.current.controls().autoRotate = true;
+                            }
                         }
                     }}
                     onArcClick={(arc) => onArcClick(arc as FreightRoute)}
@@ -145,7 +149,9 @@ export function InteractiveGlobe({
                         if (city) {
                             if (globeEl.current) globeEl.current.controls().autoRotate = false;
                         } else {
-                            if (globeEl.current) globeEl.current.controls().autoRotate = true;
+                            if (globeEl.current && !selectedRouteId && !selectedCityName) {
+                                globeEl.current.controls().autoRotate = true;
+                            }
                         }
                     }}
                     onPointClick={(city) => onCityClick(city as City)}
